@@ -11,7 +11,7 @@ from os import system
 # change start index to 200
 path = 'Z:\\Onion\\OpCode_8ExpMode_1ClkDiv_3_V2'
 crop = range(0, 1400)
-index = [101, 1101]
+index = [201, 251]
 
 mat = loadmat(path+'\\traces_'+str(index[0])+'.mat')
 traces = mat['traces'][:, crop]
@@ -31,7 +31,9 @@ Queries = np.shape(traces)[0]
 
 Y = np.zeros((1, Queries), dtype=np.uint8)
 for i in range(0, Queries):
-    Y[0,i] = sbox[np.bitwise_xor(plaintexts[i][0], keys[i][0])]
+    Y[0, i] = sbox[np.bitwise_xor(plaintexts[i][0], keys[i][0])]
 
 print(np.shape(traces))
-savemat('Z:\\traces\\traces_'+str(index[0])+'_'+str(index[1])+'_crop.mat', {'traces': traces, 'Y': Y, "samples": SAMPLES})
+
+fft = np.fft.fft(traces, axis=1, n=SAMPLES)
+savemat('Z:\\traces\\fft_'+str(index[0])+'_'+str(index[1])+'.mat', {'fft': fft, 'Y': Y, "samples": SAMPLES})

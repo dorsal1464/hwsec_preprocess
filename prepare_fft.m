@@ -21,7 +21,7 @@ traces = all_t;
 disp("calculating Y...");
 Y = zeros(Q,1);
 for i = 1:Q
-    Y(i) = sbox(1+bitxor(all_p(i,1), all_k(i,1)));
+    Y(i) = sbox(1+int32(bitxor(all_p(i,1), all_k(i,1)));
 end
 disp("fft...");
 ffts = fft(traces, 1400, 2);
