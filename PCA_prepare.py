@@ -7,8 +7,8 @@ from PCA.PCA import PCA
 
 path = 'Z:\\Onion\\OpCode_8ExpMode_1ClkDiv_3_V2'
 crop = range(0, 1400)
-isFFT = True
-index = [101, 1001]
+isFFT = False
+index = [101, 121]
 
 
 # -------------------ACTION-------------------------
@@ -36,10 +36,16 @@ for i in range(index[0]+1, index[1]):
 SAMPLES = np.shape(traces)[1]
 Queries = np.shape(traces)[0]
 
-Y = np.zeros(Queries, dtype=np.uint8)
+Y = np.zeros((1, Queries), dtype=np.uint8)
 for i in range(0, Queries):
-    Y[i] = sbox[np.bitwise_xor(plaintexts[i][0], keys[i][0])]
+    Y[0, i] = sbox[np.bitwise_xor(plaintexts[i][0], keys[i][0])]
 
 print(np.shape(traces))
 
-savemat("Z:\\traces\\pca_freq_"+str(index[0])+"_"+str(index[1])+".mat", {"pca": traces, "Y": np.transpose(Y), "samples": SAMPLES})
+if isFFT:
+    savemat("Z:\\traces\\pca_freq_"+str(index[0])+"_"+str(index[1])+".mat",
+            {"pca": traces, "Y": np.transpose(Y), "samples": SAMPLES})
+else:
+    savemat("Z:\\traces\\pca_dom_" + str(index[0]) + "_" + str(index[1]) + ".mat",
+            {"pca": traces, "Y": np.transpose(Y), "samples": SAMPLES})
+

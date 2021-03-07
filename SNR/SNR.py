@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# X = traces matrix
+# Imat = traces matrix
 # Y = class of each query, here it's the sbox result
 # N_classes = length of Y
 # N_samples = num. of samples

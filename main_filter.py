@@ -2,6 +2,12 @@ from SNR import SNR
 import matplotlib.pyplot as plt
 import hdf5storage
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
+
+# ThreadPoolExecutor(15, "filter")
+# .submit(func, args)
+# .result
+# .map
 
 # PART 1 - load ffts
 

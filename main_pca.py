@@ -1,18 +1,29 @@
 from PCA import PCA
 from SNR import SNR
 from scipy.io import loadmat
-from matplotlib.pyplot import *
+from matplotlib import pyplot as plt
+import numpy as np
 
-mat = loadmat('Z:\\traces\\traces_13.mat')
-traces = mat['traces']
-Y = np.bitwise_xor(mat['plaintext'][:, 0], mat['key'][:, 0])
-Y = np.transpose(Y)
-s, out = PCA.PCA(traces, 20)
+mat = loadmat('Z:\\traces\\pca_dom_101_1101.mat')
+traces = mat['pca']
+Y = mat['Y']
 
-plot(out[0])
-show()
+snr_t = np.abs(SNR.SNR(traces, Y, 256, 20, np.float32))
 
-snr_t = np.abs(SNR.SNR(out, Y, 256, 20, np.uint16, 0))
+fig, ax = plt.subplots()
+ax.plot(range(0, 20), snr_t)
+ax.set_title("SNR of PCA in time")
+ax.set_xlabel("dimension-time")
+plt.show()
 
-plot(snr_t)
-show()
+mat = loadmat('Z:\\traces\\pca_freq_101_1101.mat')
+traces = mat['pca']
+Y = mat['Y']
+
+snr_t = np.abs(SNR.SNR(traces, Y, 256, 20, np.complex128))
+
+fig, ax = plt.subplots()
+ax.plot(range(0, 20), snr_t)
+ax.set_title("SNR of PCA in frequency")
+ax.set_xlabel("dimension-frequency")
+plt.show()

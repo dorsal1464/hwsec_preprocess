@@ -4,33 +4,36 @@ from SNR import SNR
 import numpy as np
 import matplotlib.pyplot as plt
 import hdf5storage
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import urllib.request
 
-path = 'Z:\\traces\\'
-mat = hdf5storage.loadmat(path+'pca_dom_101_1001.mat')
-traces = mat['pca']
-Y = mat['Y']
-SAMPLES = np.shape(traces)[1]
-Queries = np.shape(traces)[0]
-# snr of PCA in time domain
-snr_t = SNR.SNR(traces[:, :], Y[:], 256, SAMPLES, np.float64)
-plt.plot(range(0, SAMPLES), np.abs(snr_t))
-plt.xlabel("t")
-plt.title("SNR of PCA T.D.")
-plt.show()
+executor = ThreadPoolExecutor(8, "test")
+
+URLS = ['http://www.foxnews.com/',
+        'http://www.cnn.com/',
+        'http://europe.wsj.com/',
+        'http://www.bbc.co.uk/',
+        'http://some-made-up-domain.com/',
+        'http://www.google.com']
+
+# Retrieve a single page and report the URL and contents
 
 
-mat = hdf5storage.loadmat(path+'pca_freq_101_1001.mat')
-traces = mat['pca']
-Y = mat['Y']
-# compute ifft then SNR
-SAMPLES = np.shape(traces)[1]
-Queries = np.shape(traces)[0]
-# snr of PCA in freq domain
-snr_t = SNR.SNR(traces[:, :], Y[:], 256, SAMPLES, np.complex128)
-plt.plot(range(0, SAMPLES), np.abs(snr_t))
-plt.xlabel("t")
-plt.title("SNR of PCA FFT")
-plt.show()
+def load_url(url, timeout):
+    with urllib.request.urlopen(url, timeout=timeout) as conn:
+        return conn.read()
+
+
+ans1 = executor.map(load_url, URLS)
+print(zip(ans1))
+# We can use a with statement to ensure threads are cleaned up promptly
+datamap = list()
+
+for url in URLS:
+    datamap.append(executor.submit(load_url, url, 30))
+
+for future in datamap:
+    print(future.result())
 
 
 
