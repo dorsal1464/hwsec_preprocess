@@ -15,7 +15,7 @@ def SNR(Imat, Y, numClassP, numSamples, type=np.float32):
         indexes = np.where(Y == y)[1]
         _means[y, :] = np.mean(Imat[indexes, :], axis=0)
         _vars[y, :] = np.var(Imat[indexes, :], axis=0)
-    SNR = np.var(_means, axis=0) / np.mean(_vars, axis=0)
+    SNR = np.nanvar(_means, axis=0) / np.nanmean(_vars, axis=0)
     return SNR
 
 

@@ -15,7 +15,7 @@ def diag_avg(mat, n):
     return ans
 
 
-def SSA(trace, L, dim):
+def SSA(trace, L):
     # create henkel matrix of the signal
     n = len(trace)
     X = np.zeros((L,n-L))
