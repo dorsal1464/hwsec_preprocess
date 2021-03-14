@@ -23,6 +23,14 @@ Y = np.reshape(Y, Y.size)
 SAMPLES = np.shape(traces)[1]
 Queries = np.shape(traces)[0]
 
+fig, ax = plt.subplots()
+snr_t = np.abs(SNR.SNR_wrapper(traces, Y, 256, SAMPLES, frames=14))
+plt.plot(range(300, 1300), snr_t[300:1300])
+ax.set_title("SNR")
+ax.set_xlabel("time[us]")
+plt.show()
+exit(0)
+
 ans = np.zeros(graph_sz, np.float32)
 for i in range(0, graph_sz):
     crop = range(0, int(Queries*(i+1)/graph_sz))
