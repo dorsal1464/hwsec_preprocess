@@ -1,21 +1,24 @@
+
 from SSA import SSA
 from scipy.io import loadmat
 from matplotlib.pyplot import *
 from SNR import SNR
+from PCA import PCA
 from concurrent.futures import ThreadPoolExecutor
+import config
 
-executor = ThreadPoolExecutor(8)
+executor = ThreadPoolExecutor(config.max_workers)
 
-mat = loadmat('Z:\\traces\\traces_101_601_full.mat')
+mat = loadmat('/home/salomod/Desktop/PROJECT/traces/traces_101_601_full.mat')
 traces = mat['traces']
 Y = mat['Y']
+Y = np.reshape(Y, (1, np.size(Y)))
 queries = np.shape(traces)[0]
 samples = np.shape(traces)[1]
 
 
-def ssa_wrapper(trace, dims):
-    ss, types, ssa = SSA.SSA(traces[1], 20)
-
+def ssa_wrapper(trace, length, a, b):
+    ss, types, ssa = SSA.SSA(trace, length, a, b)
     n = np.zeros(np.shape(ssa[0]))
     t = np.zeros(np.shape(ssa[0]))
     s = np.zeros(np.shape(ssa[0]))
@@ -29,12 +32,13 @@ def ssa_wrapper(trace, dims):
     return s, t, n
 
 
-def parse_ssa(traces, Y, crop):
+def parse_ssa(traces, Y, crop, a, b):
+    samples = np.shape(traces)[1]
     print(len(crop))
-    ssa_mat = np.zeros((len(crop), 1399), np.float32)
+    ssa_mat = np.zeros((len(crop), samples-1), np.float32)
     futures = list()
     for j in crop:
-        futures.append(executor.submit(ssa_wrapper, traces[j, :], 20))
+        futures.append(executor.submit(ssa_wrapper, traces[j, :], 20, a, b))
 
     j = 0
     for f in futures:
@@ -42,17 +46,29 @@ def parse_ssa(traces, Y, crop):
         ssa_mat[j, :] = s + t
         print(j / len(crop) * 100, '%')
         j = j + 1
-
-    snr = SNR.SNR_wrapper(ssa_mat, Y[0, crop], 256, 1399, frames=14)[300:1300]
-    plot(range(0, 1000), snr, 'o-')
+    
+    #ssa_mat = PCA.multi_PCA(ssa_mat, 20)
+    #samples = 20
+    snr = SNR.SNR_wrapper(ssa_mat, Y[0, crop], 256, samples-1, frames=14)
+    plot(range(0, len(snr)), snr)
     show()
     return np.max(snr)
 
-
+b = 0.6
 snr_l = list()
-for i in np.arange(0.001, 0.002, 0.1):
-    crop = range(0, int(queries*i))
-    snr_l.append(parse_ssa(traces, Y, crop))
+rng = np.arange(0.2, b, 1)
+# 0.0040237885 -- 100k
+for i in rng:
+    crop = range(0, 100000)
+    snr_l.append(parse_ssa(traces[:, 300:1300], Y, crop, i, b))
+
+print({'a': rng, 'b': b, 'snr': snr_l})
+
+close()
+plot(rng, snr_l, 'o-')
+xlabel('fraction a')
+title('maxSNR of SSA vs a, b = '+str())
+show()
 
 exit(0)
 
