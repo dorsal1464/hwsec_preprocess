@@ -15,9 +15,9 @@ def diag_avg(mat, n):
     return ans
 
 
-def SSA(trace, L):
+def SSA(trace, L, a=0.1, b=0.5):
     # create henkel matrix of the signal
-    n = len(trace)
+    n = np.size(trace)
     X = np.zeros((L,n-L))
     X_t = np.transpose(X)
     for i in range(0, n-L):
@@ -39,10 +39,10 @@ def SSA(trace, L):
     for i in range(0, L):
         elements.append(diag_avg(V[i], n))
     # attempting manual grouping...
-    return group(s, elements, n, L)
+    return group(s, elements, n, L, a, b)
 
 
-def group(s, elements, n, L):
+def group(s, elements, n, L, a, b):
     dt = 1
     derivate = np.diff(s) / dt
     max_der = derivate.min()
@@ -54,12 +54,12 @@ def group(s, elements, n, L):
     typ = 0         # (0, 1, 2) - trend, osci, noise
     ans[0] += elements[0]
     for i in range(0, L-1):
-        if derivate[i] < 0.5*max_der:
+        if derivate[i] < b*max_der:
             if typ != 0:
                 index += 1
                 types.append(typ)
                 typ = 0
-        elif derivate[i] < 0.1*max_der:
+        elif derivate[i] < a*max_der:
             if typ != 2:
                 index += 1
                 types.append(typ)
