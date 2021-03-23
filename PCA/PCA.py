@@ -16,3 +16,11 @@ def PCA(X, dim):
     # now calc vh^t so the columns are the eigenvectors of X^t X
     return s[:dim], np.matmul(X, vh[:, :dim])
 # return (s, pca_mat)
+    
+def multi_PCA(X, dim):
+    n = np.shape(X)[0]
+    ans = np.zeros((n, dim))
+    for i in range(0, int(n / 2000)):
+        s, mat = PCA(X[2000*i:2000*(i+1),:], dim)
+        ans[2000*i:2000*(i+1),:] = mat
+    return ans
