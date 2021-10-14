@@ -1,20 +1,23 @@
 from SNR import SNR
 import matplotlib.pyplot as plt
 import hdf5storage
+from scipy.io import savemat
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import pickle
 import config
 
 # PART 1 - load ffts
+path = 'Z:\\traces\\shuffled_rp_8\\'
+exp = False
 
-path = '/home/salomod/Desktop/PROJECT/traces/'
 mat = hdf5storage.loadmat(path+'fft_201_301.mat')
-traces = mat['fft']
+traces = np.complex64(mat['fft'])
 Y = mat['Y']
-#mat = hdf5storage.loadmat(path+'fft_301_401.mat')
-#traces = np.append(traces, mat['ffts'], axis=0)
-#Y = np.append(Y, mat['Y'])
+if exp:
+    mat = hdf5storage.loadmat(path+'fft_301_401.mat')
+    traces = np.append(traces, np.complex64(mat['ffts']), axis=0)
+    Y = np.append(Y, mat['Y'])
 
 SAMPLES = np.shape(traces)[1]
 Queries = np.shape(traces)[0]
@@ -34,7 +37,7 @@ def split_by_bandwidth(traces, Y, samples, frame_num=14, show=False):
         offset[i] = bandwidth2*i
         slice = np.append(np.arange(s2-bandwidth2*(i+1) ,s2-bandwidth2*i), np.arange(s2+bandwidth2*i, s2+bandwidth2*(i+1)))
         frame = np.fft.ifft(traces[:, slice], axis=1, n=samples)
-        snr_l[i] = np.max(np.abs(SNR.SNR_wrapper(frame, Y, 256, samples, np.complex128, frames=14))[300:1300])
+        snr_l[i] = np.max(np.abs(SNR.SNR_wrapper(frame, Y, 256, samples, np.complex128, frames=1))[300:1300])
 
     if show:
         fig, ax = plt.subplots()
@@ -42,18 +45,20 @@ def split_by_bandwidth(traces, Y, samples, frame_num=14, show=False):
         ax.set_title("max SNR vs freq slice num")
         ax.legend("frames="+str(frame_num))
         ax.set_xlabel("freq slice num")
-        plt.show()
     return offset, snr_l
 
 
-def filter_by_bandwidth(traces, Y, samples, frames=14, show=False):
+def filter_by_bandwidth(traces, Y, samples, frames=54, show=False):
     bandwidth2 = int(samples / frames / 2)
     s2 = int(samples / 2)
     offset ,snr_l = split_by_bandwidth(traces, Y, samples, frames)
     i = np.argmax(snr_l)
     slice = np.append(np.arange(s2-bandwidth2*(i+1) ,s2-bandwidth2*i), np.arange(s2+bandwidth2*i, s2+bandwidth2*(i+1)))
+    z = np.zeros(samples)
+    z[slice] = 1
+    savemat("filter_BANDWIDTH.mat", {'filter': z})
     frame = np.fft.ifft(traces[:, slice], axis=1, n=samples)
-    snr_t = np.abs(SNR.SNR_wrapper(frame, Y, 256, samples, np.complex128, frames=14))
+    snr_t = np.abs(SNR.SNR_wrapper(frame, Y, 256, samples, np.complex128, frames=1))
     
     if show:
         fig, ax = plt.subplots()
@@ -61,15 +66,15 @@ def filter_by_bandwidth(traces, Y, samples, frames=14, show=False):
         ax.set_title("SNR of frame num "+str(i)+", frames=" + str(frames))
         ax.set_xlabel("freq slice num")
         plt.show()
+        savemat("snr_BANDWIDTH.mat", {'x': np.arange(0, samples), 'y': snr_t})
 
-    
 
-
+#filter_by_bandwidth(traces, Y, SAMPLES, 50, True)
 # show maximal freq slice
-#print(split_by_bandwidth(traces, Y, SAMPLES, 14, show=True))
-#print(split_by_bandwidth(traces, Y, SAMPLES, frame_num=20, show=True))
-#print(split_by_bandwidth(traces, Y, SAMPLES, frame_num=54, show=True))
-#plt.show()
+print(split_by_bandwidth(traces, Y, SAMPLES, 14, show=True))
+print(split_by_bandwidth(traces, Y, SAMPLES, frame_num=20, show=True))
+print(split_by_bandwidth(traces, Y, SAMPLES, frame_num=54, show=True))
+plt.show()
 # PART 3 - find optimal frame width
 
 

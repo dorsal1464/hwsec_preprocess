@@ -6,9 +6,9 @@ from PCA.PCA import PCA
 
 
 path = 'Z:\\Onion\\OpCode_8ExpMode_1ClkDiv_3_V2'
-crop = range(0, 1400)
+crop = range(300, 1300)
 isFFT = False
-index = [101, 121]
+index = [101, 201]
 
 
 # -------------------ACTION-------------------------
@@ -17,7 +17,7 @@ if isFFT:
     traces = np.fft.fft(mat['traces'][:, crop], axis=1)
 else:
     traces = mat['traces'][:, crop]
-traces = PCA(traces, 20)[1]
+traces = PCA(traces).fit(20)[1]
 plaintexts = mat['plaintext']
 keys = mat['key']
 for i in range(index[0]+1, index[1]):
@@ -26,7 +26,7 @@ for i in range(index[0]+1, index[1]):
         temp = np.fft.fft(mat['traces'][:, crop], axis=1)
     else:
         temp = mat['traces'][:, crop]
-    temp = PCA(temp, 20)[1]
+    temp = PCA(temp).fit(20)[1]
     traces = np.append(traces, temp, axis=0)
     plaintexts = np.append(plaintexts, mat['plaintext'], axis=0)
     keys = np.append(keys, mat['key'], axis=0)

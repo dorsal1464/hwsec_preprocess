@@ -59,3 +59,31 @@ def by_freq_SNR(X_fft, Y, parts, crop, SAMPLES):
         tmp = SNR_wrapper(freq_filter(X_fft, i * delta, (i + 1) * delta), Y[:crop], 256, SAMPLES, np.complex128, 10)
         snr_freq[i] = tmp
         # print(i*delta, i*delta+delta)
+
+
+def partition(lst, count):
+    l = np.size(lst)
+    c = count
+    parts = list()
+    while c < l:
+        parts.append(c)
+        if c+count > l:
+            parts.append(l)
+        c += count
+    return np.split(lst, parts)
+
+
+def avg_traces(traces, Y, count=10):
+    Y = np.reshape(Y, (1, np.size(Y)))
+    new_traces = list()
+    new_y = list()
+    for y in np.unique(Y):
+        indexes = np.where(Y == y)[1]
+        slices = partition(indexes, count)
+        for s in slices:
+            if np.size(s) == 0:
+                break
+            tmp = np.average(traces[s, :], axis=0)
+            new_traces.append(tmp)
+            new_y.append(y)
+    return np.array(new_traces, ndmin=2), np.array(new_y)

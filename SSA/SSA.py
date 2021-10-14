@@ -23,6 +23,7 @@ def SSA(trace, L=None, a=0.2, b=0.6):
         W = L
     else:
         W = int(np.log(n) ** c)
+    # print(W)
     D = n - W + 1
     X = np.zeros((D, W))
     for i in range(0, W):
@@ -64,25 +65,25 @@ def ssa_wrapper(trace, length, a=0.2, b=0.6):
     return s, t, n
 
 
-def OVASSA(trace, L, Z, q):
+def OVSSA(trace, L, Z, q):
     ssa = np.zeros(np.shape(trace))
     n = np.size(trace)
     for i in range(0, n, q):
-        print("i - ", i)
-        print(min(i+Z, n))
-        print(min(i, n-Z), ":", min(i+Z, n))
+        #print("i - ", i)
+        #print(min(i+Z, n))
+        # print(min(i, n-Z), ":", min(i+Z, n))
         s, t, noise = ssa_wrapper(trace[min(i, n-Z) : min(i+Z, n)], L)
         tmp = s + t
-        print("offset - ", int(Z/2-q/2))
-        print(i, ":", i+q)
+        # print("offset - ", int(Z/2-q/2))
+        # print(i, ":", i+q)
         ssa[i : i+q] = tmp[int(Z/2-q/2):int(Z/2-q/2)+q]
     return ssa
 
 
 def group(s, elements, n, a, b):
     dt = 1
-    derivate = np.diff(s) / dt
-    max_der = derivate.min()
+    derivate = np.abs(np.diff(s) / dt)
+    max_der = derivate.max()
     ans = list()
     types = list()
     for i in range(0, np.size(s)):
@@ -91,20 +92,39 @@ def group(s, elements, n, a, b):
     typ = 0         # (0, 1, 2) - trend, osci, noise
     ans[0] += elements[0]
     for i in range(0, np.size(s)-1):
-        if derivate[i] < b*max_der:
+        if derivate[i] > b*max_der:
             if typ != 0:
                 index += 1
                 types.append(typ)
                 typ = 0
         elif derivate[i] < a*max_der:
-            if typ != 2:
-                index += 1
-                types.append(typ)
-                typ = 2
-        else:
             if typ != 1:
                 index += 1
                 types.append(typ)
                 typ = 1
+        else:
+            if typ != 2:
+                index += 1
+                types.append(typ)
+                typ = 2
         ans[index] += elements[i+1]
     return s, types, ans
+
+
+if __name__ == '__main__':
+    x = np.arange(0, 500)
+    y = 4*np.sin(4*x) + 2*np.cos(0.5*x) + np.random.randn(500)*0.2
+    ss, typ, tr = SSA(y, None, 0.2, 0.66)
+    # s,t,n = ssa_wrapper(y, None)
+    from matplotlib import pyplot as plt
+    fig, axes = plt.subplots(2, 1)
+    axes[0].plot(ss)
+    plt.title('SSA Decomposition')
+    i = 0
+    lgnd = []
+    print(typ)
+    for item in tr[:len(typ)]:
+        axes[1].plot(item)
+    axes[1].legend(typ)
+    # axes[1].legend(['trend', 'periodic', 'noise'])
+    plt.show()
